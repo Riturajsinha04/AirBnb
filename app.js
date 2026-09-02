@@ -22,9 +22,15 @@ const bookingRouter = require("./routes/booking.js");
 const authRoutes = require("./routes/auth");
 
 //  DATABASE 
-mongoose.connect(process.env.ATLASDB_URL)
-  .then(() => console.log("connected to DB"))
-  .catch(err => console.log(err));
+const dbUrl = process.env.ATLASDB_URL;
+
+if (dbUrl) {
+  mongoose.connect(dbUrl)
+    .then(() => console.log("connected to DB"))
+    .catch(err => console.log("DB Connection Error:", err));
+} else {
+  console.error("ATLASDB_URL is not defined in environment variables!");
+}
 
 // VIEW ENGINE 
 app.set("view engine", "ejs");
@@ -38,18 +44,26 @@ app.use(express.json());
 app.use(methodOverride("_method"));
 
 // SESSION STORE 
-const store = MongoStore.create({
-  mongoUrl: process.env.ATLASDB_URL,
-  touchAfter: 24 * 3600,
-});
+const secretOptions = process.env.SECRET || "mysupersecretcode";
 
-store.on("error", (err) => {
-  console.log("SESSION STORE ERROR", err);
-});
+let store;
+if (dbUrl) {
+  store = MongoStore.create({
+    mongoUrl: dbUrl,
+    crypto: {
+      secret: secretOptions,
+    },
+    touchAfter: 24 * 3600,
+  });
+
+  store.on("error", (err) => {
+    console.log("SESSION STORE ERROR", err);
+  });
+}
 
 app.use(session({
-  store,
-  secret: process.env.SECRET,
+  ...(store && { store }),
+  secret: secretOptions,
   resave: false,
   saveUninitialized: false,
   cookie: {
