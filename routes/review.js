@@ -4,7 +4,7 @@ const router = express.Router({ mergeParams: true });
 const Listing = require("../models/listing");
 const Review = require("../models/review");
 
-const { isLoggedIn, isReviewAuthor } = require("../middleware");
+const { isLoggedIn, isReviewAuthor } = require("../middlewares");
 
 
 // ADD REVIEW 

@@ -4,7 +4,7 @@ const passport = require("passport");
 const User = require("../models/user");
 const Otp = require("../models/otp"); // ✅ lowercase 'otp' fix
 const sendEmailOtp = require("../utils/sendEmail");
-const { saveRedirect } = require("../middleware");
+const { saveRedirect } = require("../middlewares");
 
 // Generate a 6-digit OTP
 function generateOtp() {

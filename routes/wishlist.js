@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
-const { isLoggedIn } = require("../middleware");
+const { isLoggedIn } = require("../middlewares");
 
 // ADD TO WISHLIST 
 router.post("/add/:listingId", isLoggedIn, async (req, res) => {
