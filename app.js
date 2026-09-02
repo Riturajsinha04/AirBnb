@@ -22,15 +22,22 @@ const bookingRouter = require("./routes/booking.js");
 const authRoutes = require("./routes/auth");
 
 //  DATABASE 
-const dbUrl = process.env.ATLASDB_URL;
-
-if (dbUrl) {
-  mongoose.connect(dbUrl)
-    .then(() => console.log("connected to DB"))
-    .catch(err => console.log("DB Connection Error:", err));
-} else {
-  console.error("ATLASDB_URL is not defined in environment variables!");
+async function connectDB() {
+  if (mongoose.connection.readyState >= 1) {
+    return;
+  }
+  const dbUrl = process.env.ATLASDB_URL;
+  if (!dbUrl) {
+    console.error("ATLASDB_URL is not defined in environment variables!");
+    return;
+  }
+  await mongoose.connect(dbUrl, {
+    serverSelectionTimeoutMS: 5000,
+  });
+  console.log("Connected to DB");
 }
+
+connectDB().catch((err) => console.log("Initial DB Connection Error:", err));
 
 // VIEW ENGINE 
 app.set("view engine", "ejs");
@@ -88,6 +95,17 @@ app.use((req, res, next) => {
   res.locals.currUser = req.user;
   res.locals.currentPath = req.originalUrl.split("?")[0];
   next();
+});
+
+// ENSURE DB CONNECTION FOR SERVERLESS
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("DB Middleware Error:", err);
+    next(err);
+  }
 });
 
 //  ROUTES 
